@@ -1,0 +1,28 @@
+{
+  "name": "ds4-osc",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "chalk": ">=0.0",
+    "dualshock": ">=3.1.1",
+    "osc": ">=2.2.0"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "start": "lib/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robmckinnon/sonic-pi-game-controller.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/robmckinnon/sonic-pi-game-controller/issues"
+  },
+  "homepage": "https://github.com/robmckinnon/sonic-pi-game-controller#readme"
+}
