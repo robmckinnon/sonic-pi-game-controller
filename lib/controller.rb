@@ -36,58 +36,6 @@ PAD_RIGHT = '/osc/b/dpright'
 PAD_UP = '/osc/b/dpup'
 PAD_DOWN = '/osc/b/dpdown'
 
-# live loops
-live_loop :button_press do
-  v = on_osc('/osc/b/*')
-  key = get_event('/osc/b/*').path
-  if v == 1
-    button_down(key)
-  else
-    button_up(key)
-  end
-end
-
-live_loop :axis_trigger do
-  v = on_osc('/osc/a/*')
-  key = get_event('/osc/a/*').path
-  case key
-  when LEFT_VERTICAL, RIGHT_VERTICAL
-    note = axis_note(-v)
-    last_note = get[note_id(key)]
-    if last_note && note.round != last_note.round
-      set(note_id(key), note)
-      play_synth key, false, note: note if note
-    end
-  when LEFT_HORIZONTAL, RIGHT_HORIZONTAL
-  when L1_PRESS, R1_PRESS
-    if v > 32760
-      puts v
-      note_down key
-    else
-      mute_synth key
-    end
-  end
-end
-
-live_loop :do_step do
-  step = step_time
-  set(step_id(step), nil)
-  if (duration, values, type = get[step_id(step)])
-    if duration
-      puts step
-      puts values
-      puts duration
-      case type
-      when :synth
-        synth get[:syn], values.to_hash, sustain: duration
-      when :sample
-        sample values
-      end
-    end
-  end
-  sleep get[:resolution]
-end
-
 # definitions
 
 define :button_down do |key|
@@ -223,7 +171,8 @@ end
 
 define :mute_synth do |key|
   s = get[synth_id(key)]
-  if (t, start, values, type = get[down_id(key)])
+  if (get[down_id(key)])
+    t, start, values, type = get[down_id(key)]
     duration = vt - t
     duration = quantise(duration, get[:resolution])
     puts ['step_start', start].join(' ')
@@ -306,4 +255,62 @@ end
 
 define :axis_note do |val|
   ((val/32767.0*36+72) - 30).round(1)
+end
+
+# live loops
+live_loop :button_press do
+  v = on_osc('/osc/b/*')
+  key = get_event('/osc/b/*').path
+  if v == 1
+    button_down key
+  else
+    button_up key
+  end
+end
+
+live_loop :axis_trigger do
+  v = on_osc('/osc/a/*')
+  key = get_event('/osc/a/*').path
+  puts key
+  case key
+  when LEFT_VERTICAL, RIGHT_VERTICAL
+    note = axis_note(-v)
+    last_note = get[note_id(key)]
+    new_note = (last_note && note.round != last_note.round)
+    if last_note.nil? || new_note
+      set(note_id(key), note)
+      puts note
+      play_synth key, false, note: note if note
+    end
+  when LEFT_HORIZONTAL, RIGHT_HORIZONTAL
+  when L1_PRESS, R1_PRESS
+    if v > 32760
+      puts v
+      button_down key
+    else
+      mute_synth key
+    end
+  end
+end
+
+comment do
+  live_loop :do_step do
+    step = step_time
+    set(step_id(step), nil)
+    if (get[step_id(step)])
+      duration, values, type = get[step_id(step)]
+      if duration
+        puts step
+        puts values
+        puts duration
+        case type
+        when :synth
+          synth get[:syn], values.to_hash, sustain: duration
+        when :sample
+          sample values
+        end
+      end
+    end
+    sleep get[:resolution]
+  end
 end
